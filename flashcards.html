@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🃏 Agent面试记忆卡</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
+.header { background: rgba(13,17,23,0.95); backdrop-filter: blur(10px); padding: 16px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 100; }
+.header h1 { font-size: 20px; margin-bottom: 8px; }
+.header .stats { display: flex; gap: 16px; font-size: 13px; color: #8b949e; }
+.header .stats span { display: flex; align-items: center; gap: 4px; }
+.nav { display: flex; gap: 8px; padding: 12px 24px; overflow-x: auto; background: #161b22;
+  border-bottom: 1px solid rgba(255,255,255,0.05); }
+.nav button { background: #21262d; color: #8b949e; border: 1px solid #30363d; padding: 6px 14px;
+  border-radius: 20px; cursor: pointer; font-size: 13px; white-space: nowrap; transition: all 0.2s; }
+.nav button:hover, .nav button.active { background: #238636; color: #fff; border-color: #238636; }
+.container { max-width: 800px; margin: 24px auto; padding: 0 20px; }
+.card { perspective: 1000px; margin-bottom: 20px; cursor: pointer; }
+.card-inner { position: relative; width: 100%; transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
+  transform-style: preserve-3d; min-height: 160px; }
+.card.flipped .card-inner { transform: rotateY(180deg); }
+.card-front, .card-back { position: absolute; width: 100%; min-height: 160px; backface-visibility: hidden;
+  border-radius: 12px; padding: 24px; display: flex; flex-direction: column; }
+.card-front { background: linear-gradient(135deg, #161b22 0%, #1c2333 100%);
+  border: 1px solid #30363d; justify-content: center; }
+.card-back { background: linear-gradient(135deg, #0d1f0d 0%, #0d2818 100%);
+  border: 1px solid #238636; transform: rotateY(180deg); overflow-y: auto; }
+.card-front .q-num { position: absolute; top: 12px; left: 16px; font-size: 11px;
+  background: #21262d; color: #8b949e; padding: 2px 10px; border-radius: 10px; }
+.card-front .q-tag { position: absolute; top: 12px; right: 16px; font-size: 11px; padding: 2px 10px; border-radius: 10px; }
+.card-front h2 { font-size: 20px; font-weight: 600; line-height: 1.5; margin-top: 16px; }
+.card-front .hint { margin-top: auto; font-size: 12px; color: #484f58; text-align: center; padding-top: 12px; }
+.card-back h3 { font-size: 15px; color: #3fb950; margin-bottom: 12px; font-weight: 600; }
+.card-back ul { list-style: none; padding: 0; }
+.card-back li { padding: 6px 0; font-size: 14px; line-height: 1.6; color: #c9d1d9;
+  border-bottom: 1px solid rgba(255,255,255,0.05); }
+.card-back li:last-child { border-bottom: none; }
+.card-back li strong { color: #58a6ff; }
+.card-back li em { color: #f0883e; font-style: normal; }
+.card-back .keyword { display: inline-block; background: #238636; color: #fff; padding: 1px 8px;
+  border-radius: 4px; font-size: 12px; margin: 2px 4px 2px 0; }
+.progress { display: flex; gap: 6px; justify-content: center; padding: 24px; flex-wrap: wrap; }
+.progress .dot { width: 10px; height: 10px; border-radius: 50%; background: #21262d;
+  cursor: pointer; transition: all 0.2s; }
+.progress .dot:hover { transform: scale(1.3); }
+.progress .dot.active { background: #58a6ff; }
+.progress .dot.done { background: #238636; }
+.keyboard-hint { position: fixed; bottom: 16px; right: 16px; background: rgba(22,27,34,0.95);
+  backdrop-filter: blur(10px); padding: 10px 14px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #484f58; }
+.keyboard-hint kbd { background: #21262d; padding: 2px 6px; border-radius: 3px;
+  border: 1px solid #30363d; font-family: inherit; }
+@media (max-width: 640px) {
+  .card-front h2 { font-size: 16px; }
+  .card-back li { font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🃏 2026年 Agent 智能体面试记忆卡</h1>
+  <div class="stats">
+    <span>📝 共 <b id="total">18</b> 道题</span>
+    <span>✅ 已复习 <b id="doneCount">0</b></span>
+    <span>📊 进度 <b id="pct">0%</b></span>
+  </div>
+</div>
+<div class="nav" id="nav"></div>
+<div class="container" id="cards"></div>
+<div class="progress" id="progress"></div>
+<div class="keyboard-hint">
+  <kbd>←</kbd> 上一题 · <kbd>→</kbd> 下一题 · <kbd>Space</kbd> 翻转 · <kbd>1</kbd>-<kbd>5</kbd> 标记掌握度
+</div>
+
+<script>
+const DATA = [
+  {
+    id: "Q1", cat: "基础概念", q: "Agent 的基本架构组成是什么？和传统 LLM 调用有什么区别？",
+    a: [
+      "<strong>四大组件</strong>：感知(Perception) + 规划(Planning) + 记忆(Memory) + 工具使用(Tool Use)",
+      "<strong>传统 LLM</strong>：预定义 → 线性 → 硬编码工作流",
+      "<strong>Agent</strong>：自主性 → 推理循环 → 动态调整策略",
+      "💡 关键词：<em>自主性</em>、<em>推理循环</em>、<em>动态路径</em>"
+    ]
+  },
+  {
+    id: "Q2", cat: "基础概念", q: "解释 ReAct 模式的工作原理。",
+    a: [
+      "ReAct = <strong>Re</strong>asoning + <strong>Act</strong>ing",
+      "<strong>Thought</strong> 思考：LLM 分析当前状态，决定下一步",
+      "<strong>Action</strong> 行动：调用工具或执行操作",
+      "<strong>Observation</strong> 观察：获取工具返回结果",
+      "循环直到任务完成"
+    ]
+  },
+  {
+    id: "Q3", cat: "基础概念", q: "对比工作流 Agent 和自主 Agent。",
+    a: [
+      "<strong>工作流 Workflow</strong>：DAG/状态机硬编码 → 可靠性高 → 报销审批、标准化客服",
+      "<strong>自主 Autonomous</strong>：LLM 决定循环和工具 → 灵活 → 研究、代码编写",
+      "💡 选择依据：任务是否确定性、是否需要灵活性"
+    ]
+  },
+  {
+    id: "Q4", cat: "记忆管理", q: "Agent 的记忆机制如何设计？",
+    a: [
+      "<strong>短期记忆</strong>：Context Window 存储当前对话历史",
+      "<strong>长期记忆</strong>：RAG + 向量数据库，Embedding 编码存储历史经验",
+      "<strong>趋势方案</strong>：长上下文模型直接处理超长历史 / 摘要+结构化压缩",
+      "💡 三层架构：短期 → 长期 → 压缩"
+    ]
+  },
+  {
+    id: "Q5", cat: "多Agent协作", q: "单 Agent 遇到瓶颈时为什么需要多 Agent 协作？",
+    a: [
+      "<strong>注意力漂移</strong>：上下文太长导致关注点偏移",
+      "<strong>推理链断裂</strong>：多步推理中间出错",
+      "适用：复杂任务、跨领域、长任务",
+      "💡 单 Agent 的天花板就是多 Agent 的起点"
+    ]
+  },
+  {
+    id: "Q6", cat: "多Agent协作", q: "多 Agent 协作有哪三种模式？",
+    a: [
+      "<strong>中心化</strong>：主 Agent 拆分任务 → 分配子 Agent（明确可拆分的任务）",
+      "<strong>流水线</strong>：A 输出给 B，如代码生成→审核→修复（有明确阶段的任务）",
+      "<strong>民主协作</strong>：多 Agent 共同讨论得出结论（需要多角度判断的任务）",
+      "💡 三种模式不是互斥的，可以组合使用"
+    ]
+  },
+  {
+    id: "Q7", cat: "多Agent协作", q: "详细解释编排者-执行者模式。",
+    a: [
+      "主 Agent（<strong>Orchestrator</strong>）拆分复杂任务为子任务",
+      "分发给不同 tools 的 <strong>Worker Agent</strong>",
+      "最后汇总结果",
+      "实例：一个写 UI + 一个写后端 + 一个做测试",
+      "💡 <em>难点：任务拆分粒度</em> — 太细通信成本高，太粗产生幻觉"
+    ]
+  },
+  {
+    id: "Q8", cat: "多Agent协作", q: "什么是反思-自我纠正模式？",
+    a: [
+      "Agent 生成输出 → 另一个 Agent <strong>扮演评审</strong>",
+      "检查是否符合约束条件 → 提供反馈 → 迭代改进",
+      "使用 <strong>Reflection 架构</strong>，记录迭代轨迹",
+      "作为长短期记忆，避免犯同样的错误",
+      "💡 Reflection = 评审 + 迭代 + 记忆"
+    ]
+  },
+  {
+    id: "Q5+", cat: "多Agent协作", q: "多智能体系统中如何解决无限循环和通信冗余？",
+    a: [
+      "<strong>循环检测</strong>：引入状态机控制流程 + 设置最大迭代次数",
+      "<strong>偷窥控制</strong>：Agent 阶段对话进行摘要处理",
+      "<strong>终止条件</strong>：明确定义任务完成标准",
+      "💡 三道防线：状态机 + 摘要 + 终止条件"
+    ]
+  },
+  {
+    id: "Q9", cat: "记忆管理", q: "多轮对话中如何处理状态爆炸和上下文溢出？",
+    a: [
+      "<strong>State 定义</strong>：严格状态结构（LangGraph state），只保存核心变量",
+      "<strong>Truncation</strong>：根据语义重要性保留（system prompt + 最近对话 + 任务目标）",
+      "<strong>Summary Buffer</strong>：旧对话摘要化，存入 context 头部",
+      "💡 三种策略组合使用，不是二选一"
+    ]
+  },
+  {
+    id: "Q10", cat: "工程实践", q: "如何保证 Agent 调用工具的可靠性？",
+    a: [
+      "<strong>语法层</strong>：JSON Mode / 强制性约束，确保输出格式合法",
+      "<strong>逻辑层</strong>：确认机制，高风险操作（删库、转账）必须人工确认",
+      "<strong>自修复</strong>：参数不合法 → 报错返回 LLM → 自我修复",
+      "💡 三层保障：语法 → 逻辑 → 自修复"
+    ]
+  },
+  {
+    id: "Q11", cat: "工程实践", q: "LangGraph 的节点和边与传统工作流有什么不同？",
+    a: [
+      "<strong>传统工作流</strong>：边是固定的，节点按顺序执行",
+      "<strong>LangGraph 边</strong>：条件边，由 LLM 输出决定下一步走向",
+      "<strong>LangGraph 节点</strong>：支持循环，Agent 可不断尝试直到成功",
+      "💡 LangGraph = 条件边 + 循环节点"
+    ]
+  },
+  {
+    id: "Q12", cat: "工程实践", q: "如何量化 Agent 的性能？",
+    a: [
+      "<strong>任务成功率</strong>：最核心、最重要",
+      "<strong>平均推理步数</strong>：越少 → 成本越低 → 响应越快",
+      "<strong>工具调用准确率</strong>：减少无效调用",
+      "💡 优先级：成功率 > 步数 > 准确率"
+    ]
+  },
+  {
+    id: "Q13", cat: "企业级RAG", q: "检索系统中知识片段互相冲突怎么处理？",
+    a: [
+      "<strong>元数据加权</strong>：根据文档实时性、权威性做权重排序",
+      "<strong>多智能体辩论</strong>：不同 Agent 不同思考方式对比，识别冲突点",
+      "<strong>引用溯源</strong>：输出附带来源链接，用户做最终校验",
+      "💡 加权 + 辩论 + 溯源三管齐下"
+    ]
+  },
+  {
+    id: "Q14", cat: "企业级RAG", q: "如何处理企业知识库中的权限隔离问题？",
+    a: [
+      "<strong>RBAC 权限对齐</strong>：向量数据库中每个 embedding 附带 ACL 元数据",
+      "<strong>物理隔离</strong>：Agent 检索时强制注入当前用户信息作为 filter",
+      "在向量检索阶段就做到隔离，<em>不靠提示词约束</em>",
+      "💡 ACL 元数据 + Filter 注入 = 物理隔离"
+    ]
+  },
+  {
+    id: "Q15", cat: "企业级RAG", q: "知识库内容更新快时 RAG 系统怎么应对？",
+    a: [
+      "<strong>动态路由</strong>：Agent 识别问题类型，实时问题优先调用 API/搜索",
+      "<strong>流式索引更新</strong>：Kafka 监控知识库变化，增量写入",
+      "<strong>缓存失效</strong>：高频问题设 TTL 缓存，元数据更新触发失效",
+      "💡 路由 + 流式更新 + 缓存失效"
+    ]
+  },
+  {
+    id: "Q16", cat: "企业级RAG", q: "RAG 中图文混合场景如何确保图片插入正确位置？",
+    a: [
+      "<strong>占位符约束</strong>：Prompt 中约束 LLM 使用图片占位符（如 IMG_001）",
+      "<strong>前端渲染</strong>：解析器匹配占位符 → 从对象存储拉取真实图片",
+      "保证图文位置对应，避免大图塞入 context 节省 token",
+      "💡 占位符 + 前端解析器 = 图文对齐"
+    ]
+  },
+  {
+    id: "Q17", cat: "企业级RAG", q: "大表格放入 prompt 导致上下文溢出怎么办？",
+    a: [
+      "<strong>先摘要再选择性读取</strong>",
+      "Agent 通过表头摘要判断是否包含所需数据",
+      "生成查询指令，只提取相关行列",
+      "将子表送给模型，减少干扰信息",
+      "💡 摘要 → 判断 → 精确提取"
+    ]
+  },
+  {
+    id: "Q18", cat: "企业级RAG", q: "多页文档中图文不在同一页导致关联错误怎么解决？",
+    a: [
+      "<strong>滑动窗口 + 跨页聚合</strong>",
+      "解析时维护滑动窗口",
+      "图片在页尾、描述在上一页末时 → <strong>布局距离计算</strong>",
+      "将临近文本块作为图片上下文元数据共同存储",
+      "💡 滑动窗口 + 布局距离 = 跨页关联"
+    ]
+  }
+];
+
+let current = 0;
+const done = new Set();
+
+const catColors = {
+  "基础概念": "#58a6ff", "记忆管理": "#f0883e", "多Agent协作": "#3fb950",
+  "工程实践": "#bc8cff", "企业级RAG": "#f778ba"
+};
+const catNames = [...new Set(DATA.map(d => d.cat))];
+
+// Build nav
+const navEl = document.getElementById('nav');
+catNames.forEach(cat => {
+  const btn = document.createElement('button');
+  btn.textContent = cat;
+  btn.style.borderColor = catColors[cat];
+  btn.onclick = () => {
+    const idx = DATA.findIndex(d => d.cat === cat);
+    if (idx >= 0) goTo(idx);
+  };
+  navEl.appendChild(btn);
+});
+
+// Build cards
+const cardsEl = document.getElementById('cards');
+DATA.forEach((d, i) => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.id = `card-${i}`;
+  card.onclick = () => { card.classList.toggle('flipped'); markDone(i); };
+  card.innerHTML = `
+    <div class="card-inner">
+      <div class="card-front">
+        <span class="q-num">${d.id}</span>
+        <span class="q-tag" style="background:${catColors[d.cat]}22;color:${catColors[d.cat]}">${d.cat}</span>
+        <h2>${d.q}</h2>
+        <div class="hint">👆 点击翻转查看答案</div>
+      </div>
+      <div class="card-back">
+        <h3>💡 ${d.id} 参考答案</h3>
+        <ul>${d.a.map(a => `<li>${a}</li>`).join('')}</ul>
+      </div>
+    </div>`;
+  cardsEl.appendChild(card);
+});
+
+// Build progress
+const progEl = document.getElementById('progress');
+DATA.forEach((d, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'dot';
+  dot.id = `dot-${i}`;
+  dot.title = `${d.id} ${d.q}`;
+  dot.style.background = catColors[d.cat];
+  dot.style.opacity = '0.3';
+  dot.onclick = () => goTo(i);
+  progEl.appendChild(dot);
+});
+
+function goTo(i) {
+  current = i;
+  document.getElementById(`card-${i}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+  updateActive();
+}
+
+function markDone(i) {
+  done.add(i);
+  document.getElementById(`dot-${i}`).style.opacity = '1';
+  document.getElementById(`doneCount`).textContent = done.size;
+  document.getElementById('pct').textContent = Math.round(done.size / DATA.length * 100) + '%';
+}
+
+function updateActive() {
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  const cat = DATA[current].cat;
+  document.querySelector(`.nav button:nth-child(${catNames.indexOf(cat) + 1})`)?.classList.add('active');
+}
+
+// Keyboard nav
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'j') { current = Math.min(current + 1, DATA.length - 1); goTo(current); }
+  if (e.key === 'ArrowLeft' || e.key === 'k') { current = Math.max(current - 1, 0); goTo(current); }
+  if (e.key === ' ') { e.preventDefault(); document.getElementById(`card-${current}`).click(); }
+});
+
+updateActive();
+</script>
+</body>
+</html>

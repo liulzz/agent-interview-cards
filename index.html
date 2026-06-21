@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧠 2026 Agent面试脑图</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; overflow: hidden; }
+#mindmap { width: 100vw; height: 100vh; }
+.header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(13,17,23,0.9);
+  backdrop-filter: blur(10px); padding: 12px 20px; display: flex; align-items: center; gap: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1); }
+.header h1 { font-size: 16px; color: #e6edf3; font-weight: 600; }
+.header .badge { background: #238636; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
+.header .controls { margin-left: auto; display: flex; gap: 8px; }
+.header button { background: #21262d; color: #e6edf3; border: 1px solid #30363d; padding: 6px 14px;
+  border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+.header button:hover { background: #30363d; border-color: #8b949e; }
+.legend { position: fixed; bottom: 16px; left: 16px; z-index: 100; background: rgba(22,27,34,0.95);
+  backdrop-filter: blur(10px); padding: 12px 16px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: #8b949e; }
+.legend div { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+.legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🧠 2026年 Agent 智能体面试重点</h1>
+  <span class="badge">18 道题 · 5 大模块</span>
+  <div class="controls">
+    <button onclick="mm.fit()">📐 适应画布</button>
+    <button onclick="expandAll()">📂 全部展开</button>
+    <button onclick="collapseAll()">📁 全部折叠</button>
+  </div>
+</div>
+<svg id="mindmap"></svg>
+<div class="legend">
+  <div><span class="dot" style="background:#58a6ff"></span> 基础概念</div>
+  <div><span class="dot" style="background:#f0883e"></span> 记忆管理</div>
+  <div><span class="dot" style="background:#3fb950"></span> 多Agent协作</div>
+  <div><span class="dot" style="background:#bc8cff"></span> 工程实践</div>
+  <div><span class="dot" style="background:#f778ba"></span> 企业级RAG</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-view@0.15.4"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-lib@0.15.4/dist/browser/index.js"></script>
+<script>
+let mm;
+const md = `# 2026年Agent智能体面试重点
+
+## 一、基础概念
+
+### Q1 Agent基本架构与LLM区别
+- **四大组件**
+  - 感知 Perception：接收用户输入和环境信息
+  - 规划 Planning：制定执行策略
+  - 记忆 Memory：存储历史经验和上下文
+  - 工具使用 Tool Use：调用外部API/数据库
+- **vs 传统LLM调用**
+  - 传统：预定义 → 线性 → 硬编码工作流
+  - Agent：自主性 → 推理循环 → 动态调整策略
+- 💡 关键词：自主性、推理循环、ReAct
+
+### Q2 ReAct模式工作原理
+- **三步循环**
+  - Thought 思考：LLM分析当前状态，决定下一步
+  - Action 行动：调用工具或执行操作
+  - Observation 观察：获取工具返回结果
+- 循环直到任务完成
+- 💡 ReAct = Reasoning + Acting
+
+### Q3 工作流Agent vs 自主Agent
+- **工作流 Workflow**
+  - DAG或状态机硬编码路径
+  - 优点：可靠性高，结果可预期
+  - 适用：报销审批、标准化客服
+- **自主 Autonomous**
+  - LLM决定循环次数和工具调用
+  - 优点：灵活，适用于开放式任务
+  - 适用：研究、代码编写、创意任务
+
+## 二、记忆管理
+
+### Q4 Agent记忆三层架构
+- **短期记忆**
+  - Context Window 存储当前对话历史
+  - 最直接，但受token限制
+- **长期记忆**
+  - RAG + 向量数据库
+  - 存储历史经验，执行前先检索相关经验
+  - Embedding编码 → 向量数据库存储
+- **趋势方案**
+  - 长上下文模型直接处理超长历史
+  - 摘要+结构化对记忆进行低位压缩
+
+### Q9 状态爆炸与上下文溢出
+- **State定义**
+  - 严格状态结构（如LangGraph的state）
+  - 只保存核心变量
+- **Truncation截断**
+  - 不是简单截断，根据语义重要性保留
+  - 保留：system prompt + 最近对话 + 当前任务目标
+- **Summary Buffer**
+  - 旧对话摘要化
+  - 存入context头部
+- 💡 三种策略组合使用
+
+## 三、多Agent协作
+
+### Q5 为什么需要多Agent协作
+- **单Agent瓶颈**
+  - 注意力漂移：上下文太长关注点偏移
+  - 推理链断裂：多步推理中间出错
+- 适用场景：复杂任务、跨领域、长任务
+
+### Q6 三种协作模式
+- **中心化**
+  - 主Agent拆分任务 → 分配子Agent
+  - 适用：明确可拆分的任务
+- **流水线**
+  - A的输出给到B
+  - 实例：代码生成 → 代码审核 → 修复
+  - 适用：有明确阶段的任务
+- **民主协作**
+  - 多Agent共同讨论得出结论
+  - 适用：需要多角度判断的任务
+
+### Q7 编排者-执行者模式 Orchestrator-Worker
+- **流程**
+  - 主Agent拆分复杂任务为子任务
+  - 分发给不同tools的Worker Agent
+  - 最后汇总结果
+- **实例**
+  - 大型软件：一个写UI + 一个写后端 + 一个做测试
+- **难点：任务拆分粒度**
+  - 拆太细 → 通信成本变高
+  - 拆太粗 → Agent产生幻觉
+- 💡 粒度是关键
+
+### Q8 反思-自我纠正模式
+- **流程**
+  - Agent生成输出
+  - 另一个Agent扮演评审
+  - 检查是否符合约束条件
+  - 提供反馈 → 迭代改进
+- **技术细节**
+  - 使用Reflection架构
+  - 记录迭代轨迹作为长短期记忆
+  - 避免犯同样的错误
+- 💡 Reflection = 评审 + 迭代 + 记忆
+
+### Q5+ 无限循环与通信冗余
+- **循环检测**
+  - 引入状态机控制流程
+  - 设置最大迭代次数
+- **偷窥控制**
+  - Agent阶段对话进行摘要处理
+- **终止条件**
+  - 明确定义任务完成标准
+
+## 四、工程实践
+
+### Q10 工具调用可靠性
+- **语法层**
+  - JSON Mode / 强制性约束
+  - 确保输出格式合法
+- **逻辑层**
+  - 确认机制：高风险操作（删库、转账）必须人工确认
+- **自修复**
+  - 参数不合法 → 报错返回LLM → 自我修复
+  - 重试逻辑 + 错误反馈
+- 💡 三层保障：语法 → 逻辑 → 自修复
+
+### Q11 LangGraph vs 传统工作流
+- **传统工作流**
+  - 边是固定的
+  - 节点按顺序执行
+- **LangGraph**
+  - 边是条件边：由LLM输出决定下一步走向
+  - 节点支持循环：Agent可不断尝试直到成功
+- 💡 LangGraph = 条件边 + 循环节点
+
+### Q12 Agent性能量化指标
+- **任务成功率**
+  - 最核心、最重要
+- **平均推理步数**
+  - 步数越少 → 成本越低 → 响应越快
+- **工具调用准确率**
+  - 减少无效调用
+- 💡 成功率 > 步数 > 准确率
+
+## 五、企业级RAG问题
+
+### Q13 检索冲突处理
+- **元数据加权**
+  - 根据文档实时性、权威性做权重排序
+- **多智能体辩论**
+  - 不同Agent用不同思考方式对比
+  - 识别冲突点，反馈给用户
+- **引用溯源**
+  - 输出附带来源链接
+  - 用户做最终校验
+
+### Q14 企业知识库权限隔离
+- **RBAC权限对齐**
+  - 向量数据库中每个embedding附带ACL元数据
+- **物理隔离**
+  - Agent检索时强制注入当前用户信息作为filter
+  - 在向量检索阶段就做到隔离
+  - 不靠提示词约束
+- 💡 ACL元数据 + Filter注入 = 物理隔离
+
+### Q15 知识库动态更新应对
+- **动态路由**
+  - Agent识别问题类型
+  - 实时性问题优先调用API/搜索工具
+  - 而不是检索知识库
+- **流式索引更新**
+  - Kafka等数据流监控知识库变化
+  - 增量写入
+- **缓存失效**
+  - 高频问题设TTL缓存
+  - 元数据更新触发缓存失效
+
+### Q16 RAG图文混合检索
+- **占位符约束**
+  - Prompt中约束LLM使用图片占位符（IMG_001）
+  - 检索到图片时保留占位符
+- **前端渲染**
+  - 解析器匹配占位符
+  - 从对象存储拉取真实图片
+- **优势**
+  - 保证图文位置对应
+  - 避免大图塞入context，节省token
+
+### Q17 大表格放入prompt优化
+- **先摘要再选择性读取**
+  - Agent通过表头摘要判断是否包含所需数据
+  - 生成查询指令，只提取相关行列
+  - 将子表送给模型
+- **优势**
+  - 减少干扰信息
+  - 准确度更高
+- 💡 摘要 → 判断 → 精确提取
+
+### Q18 多页文档图文关联错误
+- **滑动窗口 + 跨页聚合**
+  - 解析时维护滑动窗口
+  - 图片在页尾、描述在上一页末时
+  - 布局距离计算：将临近文本块作为图片上下文元数据
+  - 共同存储，检索时保持相关性
+- 💡 滑动窗口 + 布局距离 = 跨页关联
+`;
+
+(async () => {
+  const { Transformer } = markmap;
+  const { Markmap } = window.markmap;
+  const transformer = new Transformer();
+  const { root } = transformer.transform(md);
+
+  const palette = {
+    0: '#e6edf3', 1: '#58a6ff', 2: '#f0883e', 3: '#3fb950', 4: '#bc8cff', 5: '#f778ba'
+  };
+  const getColor = (node) => {
+    let d = 0, n = node;
+    while (n.parent) { d++; n = n.parent; }
+    return palette[d] || '#8b949e';
+  };
+
+  mm = Markmap.create('#mindmap', {
+    autoFit: true,
+    color: getColor,
+    maxWidth: 340,
+    paddingX: 12,
+    duration: 300,
+  }, root);
+})();
+
+function expandAll() {
+  function walk(node) { node.payload = { ...node.payload, fold: 0 }; node.children?.forEach(walk); }
+  walk(mm.state.data);
+  mm.renderData();
+  mm.fit();
+}
+function collapseAll() {
+  function walk(node, depth) {
+    if (depth > 1) node.payload = { ...node.payload, fold: 1 };
+    node.children?.forEach(c => walk(c, depth + 1));
+  }
+  walk(mm.state.data, 0);
+  mm.renderData();
+  mm.fit();
+}
+</script>
+</body>
+</html>
