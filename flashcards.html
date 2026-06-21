@@ -63,7 +63,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 <div class="header">
   <h1>🃏 2026年 Agent 智能体面试记忆卡</h1>
   <div class="stats">
-    <span>📝 共 <b id="total">18</b> 道题</span>
+    <span>📝 共 <b id="total">39</b> 道题</span>
     <span>✅ 已复习 <b id="doneCount">0</b></span>
     <span>📊 进度 <b id="pct">0%</b></span>
   </div>
@@ -251,6 +251,186 @@ const DATA = [
       "将临近文本块作为图片上下文元数据共同存储",
       "💡 滑动窗口 + 布局距离 = 跨页关联"
     ]
+  },
+  {
+    id: "BD1", cat: "字节一面（基础）", q: "多模态大模型结构？视觉编码器和语言模型的衔接方式？",
+    a: [
+      "视觉编码器(<strong>ViT/CLIP</strong>)提取图像特征",
+      "→ <strong>投影层</strong>映射到LLM embedding空间",
+      "→ LLM接收视觉+文本token混合输入",
+      "💡 代表模型：<em>LLaVA、GPT-4V、Qwen-VL</em>"
+    ]
+  },
+  {
+    id: "BD2", cat: "字节一面（基础）", q: "ReAct消息格式？tool response用什么角色？为什么？",
+    a: [
+      "消息流：<strong>system→user→assistant(thought+action)→tool(tool_response)→assistant</strong>",
+      "tool response用 <strong>tool</strong> 角色传回",
+      "语义明确，区分用户输入和工具返回，避免模型混淆",
+      "💡 工具返回结果与用户输入必须隔离"
+    ]
+  },
+  {
+    id: "BD3", cat: "字节一面（基础）", q: "SFT/RLHF/PPO/DPO训练流程？为什么SFT需要observation tokens？",
+    a: [
+      "<strong>SFT</strong>：用人工标注数据微调（含thought+action+observation完整轨迹）",
+      "<strong>RLHF</strong>：人类偏好排序→训练RM",
+      "<strong>PPO</strong>：用RM做强化学习；<strong>DPO</strong>：跳过RM直接从偏好数据优化",
+      "SFT需要observation tokens：<em>教模型理解工具调用后的反馈，学会根据观察调整策略</em>"
+    ]
+  },
+  {
+    id: "BD4", cat: "字节一面（基础）", q: "Redis在Agent系统中作用？为什么不直接用数据库？",
+    a: [
+      "Redis：<strong>缓存</strong>(KV快速读写)、<strong>消息队列</strong>(Pub/Sub异步通信)、会话存储、限流",
+      "不用数据库：DB IO慢不适合高频读写",
+      "Redis内存级速度适合热数据",
+      "💡 <em>热数据用Redis，冷数据用DB</em>"
+    ]
+  },
+  {
+    id: "BD5", cat: "字节一面（基础）", q: "缓存策略设计？ES索引什么情况下失效？",
+    a: [
+      "缓存策略：<strong>TTL过期</strong> + <strong>主动失效</strong>(数据更新时清除) + <strong>LRU淘汰</strong>",
+      "ES索引失效：数据源更新、mapping变更、分片重分配、索引重建",
+      "💡 三种策略组合，按场景选择"
+    ]
+  },
+  {
+    id: "BD6", cat: "字节二面（项目深挖）", q: "Agent死循环怎么处理？",
+    a: [
+      "<strong>最大迭代次数</strong>限制",
+      "<strong>状态机检测</strong>重复动作",
+      "异常处理：超时→回退安全状态→通知用户",
+      "💡 三道防线：次数限制 + 重复检测 + 超时回退"
+    ]
+  },
+  {
+    id: "BD7", cat: "字节二面（项目深挖）", q: "工具调用失败怎么处理？",
+    a: [
+      "<strong>重试机制</strong>（指数退避）",
+      "<strong>错误信息反馈</strong>给LLM自修复",
+      "<strong>降级方案</strong>（备用工具）",
+      "<strong>失败日志</strong>记录",
+      "💡 重试 + 自修复 + 降级 + 日志"
+    ]
+  },
+  {
+    id: "BD8", cat: "字节二面（项目深挖）", q: "上百个工具怎么快速准确选择？",
+    a: [
+      "工具<strong>分类+路由</strong>（先选类别再选具体工具）",
+      "工具描述<strong>embedding检索</strong>（语义匹配）",
+      "动态工具注册（按需加载，不全量注入prompt）",
+      "💡 两层选择：类别路由 → 语义匹配"
+    ]
+  },
+  {
+    id: "BD9", cat: "字节二面（项目深挖）", q: "长上下文怎么不忘记关键信息？",
+    a: [
+      "<strong>向量检索</strong>（长期记忆）",
+      "关键信息提取+硬编码到system prompt",
+      "<strong>Summary Buffer</strong>（摘要化旧对话）",
+      "结构化状态变量（LangGraph state）",
+      "💡 短期记忆 + 长期记忆 + 摘要压缩"
+    ]
+  },
+  {
+    id: "BD10", cat: "字节二面（项目深挖）", q: "怎么平衡成本和效果？",
+    a: [
+      "<strong>小模型初筛+大模型精排</strong>",
+      "缓存高频查询减少调用",
+      "按任务复杂度<strong>动态路由</strong>模型",
+      "💡 分级调用 + 缓存 + 动态路由"
+    ]
+  },
+  {
+    id: "BD11", cat: "字节二面（项目深挖）", q: "Agent决策出错导致数据误删，怎么防范？",
+    a: [
+      "高风险操作必须<strong>人工确认</strong>",
+      "操作前<strong>快照/备份</strong>",
+      "<strong>乐观锁+软删除</strong>",
+      "<strong>审计日志</strong>",
+      "💡 人在环路 + 备份 + 软删除 + 审计"
+    ]
+  },
+  {
+    id: "BD12", cat: "字节二面（项目深挖）", q: "用户需求模糊怎么处理？",
+    a: [
+      "多轮<strong>澄清对话</strong>（主动追问）",
+      "<strong>历史偏好检索</strong>（长期记忆）",
+      "<strong>默认值+确认机制</strong>",
+      "💡 追问 + 记忆 + 默认值"
+    ]
+  },
+  {
+    id: "BD13", cat: "字节三面（系统设计）", q: "Kafka在Agent系统中怎么用？怎么保证消息顺序？",
+    a: [
+      "场景：Agent间异步通信、事件驱动、日志流、知识库变更通知",
+      "顺序性：同一<strong>Partition内有序</strong>（按key分区）",
+      "💡 Kafka = 解耦 + 异步 + 有序分区"
+    ]
+  },
+  {
+    id: "BD14", cat: "字节三面（系统设计）", q: "Workflow和Agent的本质区别？",
+    a: [
+      "<strong>Workflow</strong>：预定义路径（DAG/状态机），确定性",
+      "<strong>Agent</strong>：LLM决定路径，自主循环，非确定性",
+      "本质区别：<em>决策权在代码还是在LLM</em>",
+      "💡 确定性 vs 自主性"
+    ]
+  },
+  {
+    id: "BD15", cat: "字节三面（系统设计）", q: "多Agent三层架构？Agent间怎么通信？",
+    a: [
+      "<strong>编排层</strong>(Orchestrator) → <strong>执行层</strong>(Worker Agents) → <strong>工具层</strong>(Tools/Services)",
+      "通信方式：消息队列（异步）、共享状态（同步）、直接调用（RPC）",
+      "💡 三层架构 + 三种通信方式"
+    ]
+  },
+  {
+    id: "BD16", cat: "字节三面（系统设计）", q: "Agent落地最大挑战？可控性vs能力平衡？",
+    a: [
+      "最大挑战：<em>可控性vs灵活性的矛盾</em>",
+      "解决：<strong>人在环路</strong>(Human-in-the-Loop)",
+      "分级权限、<strong>沙箱执行</strong>、审计日志",
+      "💡 可控性 > 灵活性，安全第一"
+    ]
+  },
+  {
+    id: "BD17", cat: "字节三面（系统设计）", q: "MCP/Agent-to-Agent/Function Calling区别？",
+    a: [
+      "<strong>Function Calling</strong>：LLM调用本地函数（OpenAI格式，单向）",
+      "<strong>MCP</strong>(Model Context Protocol)：Anthropic提出的工具/数据源统一接口标准",
+      "<strong>A2A</strong>(Agent-to-Agent)：Google提出的Agent间通信协议",
+      "💡 FC是调用方式，MCP是工具协议，A2A是Agent间协议"
+    ]
+  },
+  {
+    id: "BD18", cat: "字节三面（系统设计）", q: "Agent上下文工程主流技术？",
+    a: [
+      "<strong>Prompt压缩</strong>、<strong>摘要化</strong>、<strong>选择性注入</strong>、<strong>RAG增强</strong>",
+      "策略：分层管理（system prompt常驻 + 动态注入相关上下文 + 滑动窗口保留近期对话）",
+      "💡 分层管理，按需注入"
+    ]
+  },
+  {
+    id: "BD19", cat: "字节三面（系统设计）", q: "怎么选模型和框架？架构怎么升级？",
+    a: [
+      "选型依据：任务类型、延迟要求、成本预算、私有化需求",
+      "架构解耦：模型层抽象（统一接口），换模型不影响业务",
+      "可扩展：微服务化、模型路由、灰度切换",
+      "💡 解耦 + 抽象 + 可扩展"
+    ]
+  },
+  {
+    id: "BD20", cat: "字节三面（系统设计）", q: "手写算法（反转链表/二叉树最大宽度/LeetCode22括号生成）",
+    a: [
+      "考察编码基本功",
+      "<strong>反转链表</strong>：迭代/递归两种写法",
+      "<strong>二叉树最大宽度</strong>：BFS层序遍历",
+      "<strong>LeetCode22</strong>：回溯算法",
+      "💡 熟练掌握经典算法模板"
+    ]
   }
 ];
 
@@ -259,7 +439,8 @@ const done = new Set();
 
 const catColors = {
   "基础概念": "#58a6ff", "记忆管理": "#f0883e", "多Agent协作": "#3fb950",
-  "工程实践": "#bc8cff", "企业级RAG": "#f778ba"
+  "工程实践": "#bc8cff", "企业级RAG": "#f778ba",
+  "字节一面（基础）": "#f97316", "字节二面（项目深挖）": "#ec4899", "字节三面（系统设计）": "#8b5cf6"
 };
 const catNames = [...new Set(DATA.map(d => d.cat))];
 

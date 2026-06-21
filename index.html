@@ -27,7 +27,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 <body>
 <div class="header">
   <h1>🧠 2026年 Agent 智能体面试重点</h1>
-  <span class="badge">18 道题 · 5 大模块</span>
+  <span class="badge">38 道题 · 6 大模块</span>
   <div class="controls">
     <button onclick="mm.fit()">📐 适应画布</button>
     <button onclick="expandAll()">📂 全部展开</button>
@@ -41,6 +41,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   <div><span class="dot" style="background:#3fb950"></span> 多Agent协作</div>
   <div><span class="dot" style="background:#bc8cff"></span> 工程实践</div>
   <div><span class="dot" style="background:#f778ba"></span> 企业级RAG</div>
+  <div><span class="dot" style="background:#ff6b6b"></span> 字节跳动面试真题</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
@@ -252,6 +253,143 @@ const md = `# 2026年Agent智能体面试重点
   - 布局距离计算：将临近文本块作为图片上下文元数据
   - 共同存储，检索时保持相关性
 - 💡 滑动窗口 + 布局距离 = 跨页关联
+
+## 六、字节跳动面试真题
+
+### 基础功底（一面）
+
+#### BD1 多模态大模型结构
+- **视觉编码器和语言模型的衔接方式**
+  - 视觉编码器（ViT/CLIP）提取图像特征
+  - Projection Layer 将视觉特征映射到语言模型embedding空间
+  - 语言模型接收视觉token + 文本token统一处理
+
+#### BD2 ReAct消息格式设计
+- **tool response用什么角色传回？为什么？**
+  - 使用 system 或 tool 角色传回
+  - 避免污染 assistant 角色的生成分布
+  - 保持 user/assistant 的干净对话流
+
+#### BD3 SFT/RLHF/PPO/DPO训练流程
+- **为什么SFT需要observation tokens？**
+  - SFT阶段：监督微调，教模型格式和工具调用方式
+  - RLHF/PPO：人类反馈强化学习，优化输出质量
+  - DPO：直接偏好优化，简化RLHF流程
+  - Observation tokens：SFT中需要标注工具返回结果，教模型学会等待和处理反馈
+
+#### BD4 Redis在Agent系统中的作用
+- **为什么不用数据库通信？**
+  - Redis：低延迟、内存级读写、支持Pub/Sub
+  - Agent间实时通信需要毫秒级响应
+  - 数据库适合持久化，不适合高频实时通信场景
+
+#### BD5 缓存策略设计
+- **ES索引什么情况下失效？**
+  - 知识库更新时需要增量重建索引
+  - 文档版本变更、权限调整时缓存失效
+  - TTL过期 + 变更事件触发双重机制
+
+### 项目深挖（二面）
+
+#### BD6 死循环与异常处理
+- **死循环处理**
+  - 设置最大迭代次数（如10轮）
+  - 检测重复动作模式，触发熔断
+- **异常处理机制**
+  - try-catch包裹工具调用
+  - 异常信息反馈给LLM重新决策
+
+#### BD7 工具调用失败处理
+- **容错策略**
+  - 重试机制：指数退避 + 最大重试次数
+  - 降级方案：失败后选择备选工具
+  - 错误信息结构化返回给LLM
+
+#### BD8 上百个工具快速准确选择
+- **工具路由策略**
+  - 工具分类 + 语义检索：先缩小候选集
+  - 工具描述Embedding → 向量检索Top-K
+  - 动态工具注册表，按需加载
+
+#### BD9 长上下文对话不遗忘关键信息
+- **除向量检索外的方法**
+  - 结构化记忆表：显式记录关键实体和状态
+  - 摘要压缩：定期对历史对话做摘要
+  - 关键信息提取 + Slot Filling机制
+
+#### BD10 成本和效果平衡
+- **策略**
+  - 路由分层：简单问题用小模型，复杂问题用大模型
+  - 缓存命中率优化：相似问题复用结果
+  - Token预算控制：动态调整context长度
+
+#### BD11 Agent决策出错导致数据误删
+- **防范机制**
+  - 高风险操作必须人工确认（Human-in-the-Loop）
+  - 操作前快照 + 软删除 + 审计日志
+  - 权限分级：Agent只有低风险操作权限
+
+#### BD12 用户需求模糊处理
+- **如"按老样子帮我定"**
+  - 意图消解：检索历史偏好和行为模式
+  - 主动确认：输出理解内容让用户确认
+  - 渐进式交互：先执行再反馈调整
+
+### 系统设计（三面）
+
+#### BD13 Kafka在Agent系统中的应用
+- **应用场景**
+  - Agent间异步通信、任务队列
+  - 审计日志流、事件驱动架构
+- **消息顺序性保证**
+  - 同一Agent的事件发到同一Partition
+  - Partition Key使用Agent ID或Session ID
+
+#### BD14 Workflow和Agent的本质区别
+- **架构角度分析**
+  - Workflow：确定性边 + 预定义路径，控制流在编排层
+  - Agent：LLM决策边 + 动态路径，控制流在模型层
+  - 本质区别：控制流由谁决定（代码 vs 模型）
+
+#### BD15 多Agent系统三层架构
+- **架构设计**
+  - 协调层：任务拆分和分配
+  - 执行层：具体Agent执行子任务
+  - 共享层：状态存储和通信总线
+- **Agent间通信方式**
+  - 消息队列（异步）/ 共享状态（同步）/ 直接调用（紧耦合）
+
+#### BD16 Agent大规模落地最大挑战
+- **可控性和能力的平衡**
+  - 能力越强 → 越难控制 → 出错代价越大
+  - 灰度发布 + A/B测试 + 安全护栏
+  - 分级部署：内部试用 → 受控场景 → 开放场景
+
+#### BD17 MCP/Agent-to-Agent/Function Calling
+- **三者定义与区别**
+  - Function Calling：LLM调用外部工具的协议
+  - MCP（Model Context Protocol）：标准化模型与工具的接口协议
+  - Agent-to-Agent：Agent之间的通信和协作协议
+  - 区别：工具调用 vs 接口标准 vs Agent通信
+
+#### BD18 Agent上下文工程
+- **主流技术**
+  - Context Window管理：system prompt + 动态context + 工具结果
+  - 有效的上下文管理策略
+  - RAG检索增强 + 记忆压缩 + 结构化Prompt
+
+#### BD19 模型和框架选择
+- **怎么决定用什么模型和框架**
+  - 任务复杂度、延迟要求、成本预算
+  - 架构升级方案：单模型 → 多模型路由 → Agent集群
+  - 评估指标驱动迭代
+
+#### BD20 手写算法
+- **考察重点**
+  - 反转链表：基础数据结构操作
+  - 二叉树最大宽度：BFS层序遍历
+  - LeetCode22 括号生成：回溯算法
+  - 考察工程编码能力
 `;
 
 (async () => {
@@ -261,7 +399,7 @@ const md = `# 2026年Agent智能体面试重点
   const { root } = transformer.transform(md);
 
   const palette = {
-    0: '#e6edf3', 1: '#58a6ff', 2: '#f0883e', 3: '#3fb950', 4: '#bc8cff', 5: '#f778ba'
+    0: '#e6edf3', 1: '#58a6ff', 2: '#f0883e', 3: '#3fb950', 4: '#bc8cff', 5: '#f778ba', 6: '#ff6b6b'
   };
   const getColor = (node) => {
     let d = 0, n = node;
